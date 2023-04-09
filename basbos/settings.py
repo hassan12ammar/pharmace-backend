@@ -10,6 +10,7 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/4.1/ref/settings/
 """
 
+import os
 from pathlib import Path
 from .utlize.constant import SECRET_KEY, DEBUG
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -31,6 +32,8 @@ ALLOWED_HOSTS = []
 # Application definition
 
 INSTALLED_APPS = [
+    # jazmin has to be on top
+    'jazzmin',    
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -40,6 +43,8 @@ INSTALLED_APPS = [
     # locall app
     'core',
     'auth_profile',
+    # 3'rd Party app
+    'phonenumber_field'
 ]
 
 MIDDLEWARE = [
@@ -71,6 +76,19 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'basbos.wsgi.application'
+
+# jazzmin settings
+
+JAZZMIN_SETTINGS = {
+    "site_title": "BASBOD",
+    "site_header": "BASBOD",
+    # "site_logo": os.path.join(BASE_DIR, "logo.png"),
+    # "site_icon": os.path.join(BASE_DIR, "logo.png"),
+    "welcome_sign": "Welcome to BASBOD, Your Gateway to Stay healthy and save time.",
+    # JAZZMIN UI TWEAKS
+    "theme": "flatly",
+    "dark_mode_theme": "darkly",
+}
 
 
 # Database
@@ -124,3 +142,6 @@ STATIC_URL = 'static/'
 # https://docs.djangoproject.com/en/4.1/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+# Defualt auth user model
+AUTH_USER_MODEL = 'auth_profile.CustomUser'
