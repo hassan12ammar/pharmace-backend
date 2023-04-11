@@ -28,9 +28,9 @@ source pharmace_venv/bin/activate
 ```sh
 $ source dna101blog_venv/bin/activate.fish
 ```
-#### if you use Windows
+#### if you use **Windows**
 ```sh
-venv\Scripts\activate
+source source pharmace_venv\Scripts\activate
 ```
 
 ### Install dependencies
