@@ -171,6 +171,7 @@ media
 # ignore imgs
 **/blog_imgs/**
 !**/blog_imgs
+**/drug_imgs/**
+!**/drug_imgs
 
 # End of https://mrkandreev.name/snippets/gitignore-generator/#Python,Django,VisualStudioCode
-
