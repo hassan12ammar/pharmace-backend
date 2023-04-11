@@ -1,4 +1,4 @@
-""" basbos URL Configuration """
+""" pharmace URL Configuration """
 from django.contrib import admin
 from django.urls import path
 from ninja import NinjaAPI
@@ -6,7 +6,7 @@ from ninja import NinjaAPI
 from auth_profile.controllers import auth_controller, profile_controller
 
 
-api = NinjaAPI(title="BASBOS Backend", 
+api = NinjaAPI(title="pharmace Backend", 
                 description="Backend of E-commerc for pharmacies website using Django and Ninja")
 api.add_router("auth", auth_controller, tags=["Auth"])
 api.add_router("auth", profile_controller, tags=["Profile"])

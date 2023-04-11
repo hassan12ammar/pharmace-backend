@@ -5,9 +5,9 @@ from django.contrib.auth import get_user_model
 from phonenumber_field.validators import validate_international_phonenumber
 # local models
 from .models import Profile
-from basbos.utlize.custom_classes import Error
+from pharmace.utlize.custom_classes import Error
 from auth_profile.authentication import CustomAuth, create_token
-from basbos.utlize.utlize import get_user_profile, password_validator
+from pharmace.utlize.utlize import get_user_profile, password_validator
 from .schemas import AuthOut, MessageOut, ProfileIn, ProfileOut, SigninIn, UserIn
 
 

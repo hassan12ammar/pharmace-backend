@@ -1,4 +1,4 @@
-# BASBOS
+# Pharmaceutical 
 ## Django/Django Ninja Backend
 This is a backend application built using Django and Django Ninja. It provides a RESTful API for interacting with your data and can be easily integrated into your frontend or mobile application.
 
@@ -11,22 +11,26 @@ Easy integration with Django admin
 
 ### Clone the repository
 ```sh
-git clone https://github.com/hassan12ammar/basbos-backend.git
+git clone https://github.com/hassan12ammar/pharmace-backend.git
 ```
 ```sh
-cd basbos-backend
+cd pharmace-backend
 ```
 
 ### Create a virtual environment and activate it:
 ```sh
-python -m venv basbos_venv
+python -m venv pharmace_venv
 ```
 ```sh
-source basbos_venv/bin/activate
+source pharmace_venv/bin/activate
 ```
 #### if you use **fish**
 ```sh
 $ source dna101blog_venv/bin/activate.fish
+```
+#### if you use Windows
+```sh
+venv\Scripts\activate
 ```
 
 ### Install dependencies

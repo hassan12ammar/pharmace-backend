@@ -2,7 +2,7 @@
 from jose import jwt, JWTError
 from ninja.security import HttpBearer
 # import files
-from basbos.settings import SECRET_KEY
+from pharmace.settings import SECRET_KEY
 
 
 # customizing the HttpBearer class

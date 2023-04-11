@@ -1,6 +1,6 @@
 # initial ifnore
 /.env
-/basbos_venv
+/pharmace_venv
 /db.sqlite3
 
 # Byte-compiled / optimized / DLL files

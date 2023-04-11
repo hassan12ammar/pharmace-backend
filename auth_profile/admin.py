@@ -1,6 +1,6 @@
 from django.contrib import admin
 # locall models
-from basbos.forms import CustomUserForm
+from pharmace.forms import CustomUserForm
 from .models import CustomUser, Profile
 
 
