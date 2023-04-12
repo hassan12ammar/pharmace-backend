@@ -5,6 +5,8 @@
 
 # Byte-compiled / optimized / DLL files
 */__pycache__/*
+**/__pycache__/**
+
 *.py[cod]
 *$py.class
 
@@ -171,8 +173,8 @@ media
 # ignore imgs
 **/drug_imgs/**
 !**/drug_imgs
-**/pharmacy_img/**
-!**/pharmacy_img
+**/pharmacy_imgs/**
+!**/pharmacy_imgs
 **/profile_imgs/**
 !**/profile_imgs
 
