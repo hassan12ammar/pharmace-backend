@@ -80,11 +80,11 @@ WSGI_APPLICATION = 'pharmace.wsgi.application'
 # jazzmin settings
 
 JAZZMIN_SETTINGS = {
-    "site_title": "BASBOD",
-    "site_header": "BASBOD",
+    "site_title": "Pharmaceutical",
+    "site_header": "Pharmaceutical",
     # "site_logo": os.path.join(BASE_DIR, "logo.png"),
     # "site_icon": os.path.join(BASE_DIR, "logo.png"),
-    "welcome_sign": "Welcome to BASBOD, Your Gateway to Stay healthy and save time.",
+    "welcome_sign": "Welcome to Pharmaceutical, Your Gateway to Stay healthy and save time.",
     # JAZZMIN UI TWEAKS
     "theme": "flatly",
     "dark_mode_theme": "darkly",
