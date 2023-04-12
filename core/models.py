@@ -1,48 +1,83 @@
 from django.db import models
-# from typing import Optional
+
 
 class Review(models.Model):
-    """
-    user
-    rating stars
-    description (pptional)
-    """
-    pass
+    user = models.OneToOneField("auth_profile.Profile", 
+                                verbose_name=("user_profile"), 
+                                on_delete=models.CASCADE)
+    rating = models.FloatField("rate stars")
+    description = models.CharField(max_length=500, null=True)
+    pharmacy = models.ForeignKey("core.Pharmacy", on_delete=models.CASCADE)
+
+    def __str__(self):
+        return f"{self.user} / {self.rating}"
+
 
 class Pharmacy(models.Model):
-    """
-    name
-    description
-    drugs
-    img
-    location
-    reviews
-    """
-    pass
+    name = models.CharField(max_length=100)
+    description = models.CharField(max_length=750)
+
+    img = models.ImageField(upload_to='pharmacy_imgs', null=True)
+    location = models.CharField(max_length=150)
+
+    def __str__(self):
+        return self.name
+
 
 class Drug(models.Model):
-    """
-    name
-    desription
-    price
-    """
-    pass
+    name = models.CharField(max_length=100)
+    description = models.CharField(max_length=750)
+    img = models.ImageField(upload_to='drug_imgs', 
+                            null=True, blank=True)
+    price = models.FloatField()
+    is_active = models.BooleanField('is active')
+
+    pharmacy = models.ForeignKey("core.Pharmacy", 
+                              on_delete=models.CASCADE)
+
+    def __str__(self) -> str:
+        return self.name
+
 
 class DrugItem(models.Model):
     """
-    drugs
-    amount
-    total (property)
+    Drug can live alone in the system, while
+    Item can only live within the cart.
     """
-    pass
+    drug = models.ForeignKey("core.Drug", 
+                             on_delete=models.CASCADE)
+    amount = models.IntegerField()
+    cart = models.ForeignKey("core.Cart", 
+                             related_name="item_cart",
+                             on_delete=models.CASCADE)
+
+    def __str__(self):
+        return f"{self.drug} / {self.amount}"
+
 
 class Cart(models.Model):
-    """
-    user
-    items
-    date (start & ordered )
-    ordered (bool)
-    """
-    pass
+    class StatusChoices(models.TextChoices):
+        # items are in the basket.
+        NEW = 'NEW'  
+        # payment confirmed processing order.
+        PROCESSING = 'PROCESSING'
+        # Shipped to customer.
+        SHIPPED = 'SHIPPED'
+        # Completed and received by customer.
+        COMPLETED = 'COMPLETED'
 
+    user = models.OneToOneField("auth_profile.Profile", 
+                                verbose_name=("user_profile"), 
+                                on_delete=models.CASCADE)
+
+    # items = models.ManyToManyField("core.DrugItem")
+
+    ordered = models.BooleanField("is ordered")
+    status = models.CharField(max_length=15, choices=StatusChoices.choices)
+
+    start_date = models.DateTimeField(auto_now_add=True)
+    ordered_date = models.DateTimeField()
+
+    def __str__(self):
+        return f"{self.user.__str__()} cart"
 
