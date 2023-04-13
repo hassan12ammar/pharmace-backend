@@ -26,7 +26,7 @@ source pharmace_venv/bin/activate
 ```
 #### if you use **fish**
 ```sh
-$ source dna101blog_venv/bin/activate.fish
+$ source pharmace_venv/bin/activate.fish
 ```
 #### if you use **Windows**
 ```sh
