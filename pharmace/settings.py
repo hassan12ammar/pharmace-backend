@@ -82,12 +82,13 @@ WSGI_APPLICATION = 'pharmace.wsgi.application'
 JAZZMIN_SETTINGS = {
     "site_title": "Pharmaceutical",
     "site_header": "Pharmaceutical",
-    # "site_logo": os.path.join(BASE_DIR, "logo.png"),
-    # "site_icon": os.path.join(BASE_DIR, "logo.png"),
+    "site_logo": os.path.join(BASE_DIR, "pharmacy-logo.png"),
+    "site_icon": os.path.join(BASE_DIR, "pharmacy-logo.png"),
     "welcome_sign": "Welcome to Pharmaceutical, Your Gateway to Stay healthy and save time.",
-    # JAZZMIN UI TWEAKS
-    "theme": "flatly",
-    "dark_mode_theme": "darkly",
+}
+
+JAZZMIN_UI_TWEAKS = {
+    "theme": "darkly",
 }
 
 
