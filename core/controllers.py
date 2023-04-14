@@ -1,6 +1,8 @@
 from typing import List
-from ninja import Router
+from ninja import Router, UploadedFile
 from rest_framework import status
+from django.core.paginator import Paginator
+from django.core.files.uploadedfile import SimpleUploadedFile
 # locall models
 from .models import Cart, DrugItem, Pharmacy, Review, Drug
 from pharmace.utlize.custom_classes import Error
@@ -12,15 +14,26 @@ from .schemas import (CartOut, DrugItemOut, PharmacyOut,
 # 
 pharmacy_router = Router()
 cart_router = Router()
-
+draft_router = Router
 
 """ Pharmacy """
-@pharmacy_router.get("get_all",
+
+
+@pharmacy_router.get("get_all/{page_number}",
                      response={
                          200:List[PharmacyShort],
                      })
-def get_all(request):
-    return status.HTTP_200_OK, Pharmacy.objects.all()
+def get_all(request, page_number: int):
+    pharmacies = Pharmacy.objects.all().order_by('id')
+    # Set the number of objects per page
+    paginator = Paginator(list(pharmacies), 6)
+
+    page_obj = paginator.get_page(page_number)
+
+    serialized_data = [pharmacy 
+                       for pharmacy in page_obj]
+
+    return status.HTTP_200_OK, serialized_data
 
 
 @pharmacy_router.get("get_by_id/{id}",
@@ -210,40 +223,6 @@ def add_to_cart(request, drug_id: int):
     return item
 
 
-@cart_router.put("remove_from_cart/{drug_id}",
-                  response={
-                      200: DrugItemOut,
-                      400: MessageOut,
-                      404: MessageOut,
-                  },
-                auth=CustomAuth(),)
-def remove_from_cart(request, drug_id: int):
-    # get the user from email in auth
-    email = request.auth
-
-    # check if user and profile exists
-    profile = get_user_profile(email)
-    if isinstance(profile, Error):
-        return profile.status, profile.message
-
-    # cart of the user
-    cart = Cart.objects.filter(user=profile).first()
-    drug = Drug.objects.filter(id=drug_id).first()
-
-    # check if there is an item
-    item = DrugItem.objects.filter(drug=drug,
-                                   cart=cart,)
-
-    if item.exists():
-        item = item.first()
-        item.delete()
-
-        return status.HTTP_200_OK, MessageOut(detail="Item Deleted")
-
-    return status.HTTP_404_NOT_FOUND, MessageOut(detail="Item Not Found")
-
-
-
 @cart_router.put("decrease_from_cart/{drug_id}",
                   response={
                       200: DrugItemOut,
@@ -281,4 +260,58 @@ def decrease_from_cart(request, drug_id: int):
 
     return status.HTTP_404_NOT_FOUND, MessageOut(detail="Item Not Found")
 
+
+""" Draft """
+
+
+@draft_router.post("create", response={200: MessageOut})
+def create(request, img: UploadedFile):
+
+    img_data = img.read()
+    img_name = img.name
+    img = SimpleUploadedFile(img_name, img_data, content_type='image/jpeg')
+
+    for i in range(10):
+        Pharmacy.objects.create(
+            name=f"{i} Nahr",
+            description="A family-owned pharmacy that has been serving the community",
+            location="Al Mansour / alroad / cross meshmesha",
+            img=img,
+        )
+
+    return status.HTTP_200_OK, MessageOut(detail="Done")
+
+
+
+@cart_router.put("remove_from_cart/{drug_id}",
+                  response={
+                      200: DrugItemOut,
+                      400: MessageOut,
+                      404: MessageOut,
+                  },
+                auth=CustomAuth(),)
+def remove_from_cart(request, drug_id: int):
+    # get the user from email in auth
+    email = request.auth
+
+    # check if user and profile exists
+    profile = get_user_profile(email)
+    if isinstance(profile, Error):
+        return profile.status, profile.message
+
+    # cart of the user
+    cart = Cart.objects.filter(user=profile).first()
+    drug = Drug.objects.filter(id=drug_id).first()
+
+    # check if there is an item
+    item = DrugItem.objects.filter(drug=drug,
+                                   cart=cart,)
+
+    if item.exists():
+        item = item.first()
+        item.delete()
+
+        return status.HTTP_200_OK, MessageOut(detail="Item Deleted")
+
+    return status.HTTP_404_NOT_FOUND, MessageOut(detail="Item Not Found")
 
