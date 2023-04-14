@@ -137,6 +137,7 @@ class CartSchema(Schema):
     ordered: bool
     start_date: date
     ordered_date: date
+    shipping: float
 
     total: float
 

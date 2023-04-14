@@ -71,10 +71,14 @@ def get_cart(request):
             for item in items
             ])
     
+    # get shipping cost
+    shipping = items[0].drug.pharmacy.shipping
+
     result = cart.__dict__
     result["items"] = items
     result["user"] = profile
     result["total"] = total
+    result["shipping"] = shipping
 
     return status.HTTP_200_OK, result
 
