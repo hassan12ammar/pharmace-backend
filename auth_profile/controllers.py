@@ -2,7 +2,6 @@ import os
 from typing import List
 from rest_framework import status
 from ninja import Body, File, Router, UploadedFile
-from django.core.files.base import ContentFile
 from django.contrib.auth import get_user_model
 from phonenumber_field.validators import validate_international_phonenumber
 # local models
@@ -127,7 +126,7 @@ def create_profile(request, profile_in: ProfileIn, img: UploadedFile=None):
     # get email from auth request
     email = request.auth
 
-    # get the user instance
+    # get the user iAttributeError: _committednstance
     try:
         user = User.objects.get(email=email)
     except User.DoesNotExist:
