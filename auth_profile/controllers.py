@@ -5,6 +5,7 @@ from django.contrib.auth import get_user_model
 from phonenumber_field.validators import validate_international_phonenumber
 # local models
 from .models import Profile
+from core.models import Cart
 from pharmace.utlize.custom_classes import Error
 from auth_profile.authentication import CustomAuth, create_token
 from pharmace.utlize.utlize import get_user_profile, password_validator
@@ -152,6 +153,9 @@ def create_profile(request, profile_in:ProfileIn):
 
     # save all changes
     profile.save()
+    
+    # create empty Cart for the user
+    Cart.objects.create(status=Cart.StatusChoices.NEW)
 
     # create response
     project_dict = profile.__dict__
