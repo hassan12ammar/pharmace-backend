@@ -65,8 +65,10 @@ class PharmacyShort(Schema):
         reviews = self.review_set.all()
         rates = [review.rating 
                  for review in reviews]
+        if not rates:
+            return 0
 
-        return sum(rates) / len(rates)    
+        return sum(rates) / len(rates)
 
 
 class PharmacySchema(Schema):
