@@ -90,13 +90,12 @@ def filter_location(request, name: str):
     return status.HTTP_200_OK, pharmacy
 
 
-# TODO Review End-Points Add/Delet/Edit
-@pharmacy_router.post("add_review",
+@pharmacy_router.post("add_edit_review",
                       response={200: ReviewOut,
                                 400: MessageOut,
                                 404: MessageOut},
                       auth=CustomAuth(),)
-def add_review(request, review_in: ReviewIn):
+def add_edit_review(request, review_in: ReviewIn):
     # get the user from email in auth
     email = request.auth
 
@@ -104,8 +103,12 @@ def add_review(request, review_in: ReviewIn):
     profile = get_user_profile(email)
     if isinstance(profile, Error):
         return profile.status, profile.message
-    
-    review, _ = Review.objects.get_or_create(user=profile, pharmacy=review_in.Pharmacy_id)
+
+    pharmacy = Pharmacy.objects.filter(id=review_in.Pharmacy_id).first()
+    # get the review or create new one
+
+    review, _ = Review.objects.get_or_create(user=profile, pharmacy=pharmacy,
+                                             defaults={'rating': 0, 'description': ''})
     review.rating = review_in.rating
     review.description = review_in.description
 
