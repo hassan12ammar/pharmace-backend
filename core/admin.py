@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Pharmacy, Drug, DrugItem, Cart
+from .models import OpeningHours, Pharmacy, Drug, DrugItem, Cart, Review
 
 
 # reverse foreign key
@@ -9,10 +9,16 @@ class DrugItemAdmin(admin.TabularInline):
 class DrugAdmin(admin.TabularInline):
     model = Drug
 
+class ReviewAdmin(admin.TabularInline):
+    model = Review
+
+class OpeningHoursAdmin(admin.TabularInline):
+    model = OpeningHours
+
 
 class PharmacyAdmin(admin.ModelAdmin):
     model = Pharmacy
-    inlines = [DrugAdmin]
+    inlines = [DrugAdmin, ReviewAdmin, OpeningHoursAdmin]
 
 class CartAdmin(admin.ModelAdmin):
     model = Cart
