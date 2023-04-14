@@ -1,7 +1,6 @@
 from ninja import Schema
 from typing import Optional
 from pydantic import EmailStr, Field
-from phonenumber_field.formfields import PhoneNumberField
 
 
 # General Schemas
@@ -37,7 +36,6 @@ class SigninIn(Schema):
 
 class ProfileSchema(Schema):
     name: str
-    img: Optional[str] = None
     phone_number: Optional[str]
 
 
@@ -46,8 +44,8 @@ class ProfileIn(ProfileSchema):
     state: str
 
 
-
 class ProfileOut(ProfileSchema):
+    img: Optional[str] = None
     address: str
     email: EmailStr
 

@@ -63,7 +63,7 @@ class Profile(models.Model):
     # for address
     city = models.CharField(max_length=85)
     state = models.CharField(max_length=85)
-    phone = PhoneNumberField(blank=True)
+    phone = PhoneNumberField(blank=True, null=True)
 
     @property
     def phone_number(self):

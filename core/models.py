@@ -103,10 +103,11 @@ class Cart(models.Model):
                                 on_delete=models.CASCADE)
 
     ordered = models.BooleanField("is ordered", default=False)
-    status = models.CharField(max_length=15, choices=StatusChoices.choices)
+    status = models.CharField(max_length=15, choices=StatusChoices.choices,
+                              default=StatusChoices.NEW)
 
     start_date = models.DateTimeField(auto_now_add=True)
-    ordered_date = models.DateTimeField()
+    ordered_date = models.DateTimeField(blank=True, null=True)
 
     def __str__(self):
         return f"{self.user.__str__()} cart"

@@ -1,4 +1,5 @@
 from django.contrib import admin
+from core.models import Cart
 # locall models
 from pharmace.forms import CustomUserForm
 from .models import CustomUser, Profile
@@ -16,5 +17,14 @@ class CustomUserAdmin(admin.ModelAdmin):
         obj.save()
 
 
+class CartAdminInline(admin.TabularInline):
+    model = Cart
+    
+
+class ProfileAdmin(admin.ModelAdmin):
+    model = Profile
+    inlines = [CartAdminInline]
+
+
 admin.site.register(CustomUser, CustomUserAdmin)
-admin.site.register(Profile)
+admin.site.register(Profile, ProfileAdmin)

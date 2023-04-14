@@ -1,6 +1,8 @@
+import os
 from typing import List
-from ninja import Router
 from rest_framework import status
+from ninja import Body, File, Router, UploadedFile
+from django.core.files.base import ContentFile
 from django.contrib.auth import get_user_model
 from phonenumber_field.validators import validate_international_phonenumber
 # local models
@@ -121,7 +123,7 @@ def get_profile(request):
                                    },
                         auth=CustomAuth(),
 )
-def create_profile(request, profile_in:ProfileIn):
+def create_profile(request, profile_in: ProfileIn, img: UploadedFile=None):
     # get email from auth request
     email = request.auth
 
@@ -145,17 +147,21 @@ def create_profile(request, profile_in:ProfileIn):
     profile = Profile.objects.create(
         user=user,
         name=profile_in.name,
-        img=profile_in.img,
         city=profile_in.city,
         state=profile_in.state,
         phone=profile_in.phone_number,
     )
 
+    # Save profile picture
+    if img:
+        profile.img.save(f'profile-{profile.id}.jpg', img)
+    else: profile.img=img
+
     # save all changes
     profile.save()
-    
+
     # create empty Cart for the user
-    Cart.objects.create(status=Cart.StatusChoices.NEW)
+    Cart.objects.create(user=profile)
 
     # create response
     project_dict = profile.__dict__
@@ -169,14 +175,14 @@ def create_profile(request, profile_in:ProfileIn):
     return status.HTTP_200_OK, profile_out
 
 
-@profile_controller.put("edit_profile",
+@profile_controller.post("edit_profile",
                          response={200: ProfileOut, 
                                    404: MessageOut,
                                    400: MessageOut,
                                    },
                          auth=CustomAuth(),
 )
-def edit_profile(request, profile_in: ProfileIn):
+def edit_profile(request, profile_in: ProfileIn=Body(...), img: UploadedFile=File(None)):
     # get email from auth request
     email = request.auth
 
@@ -193,10 +199,17 @@ def edit_profile(request, profile_in: ProfileIn):
 
     # Update the user profile
     profile.name = profile_in.name
-    profile.img = profile_in.img
     profile.city=profile_in.city
     profile.state=profile_in.state
     profile.phone=profile_in.phone_number
+
+    # Save new profile picture if provided
+    if img:
+        # remove old img
+        if profile.img:
+            os.remove(profile.img.path)
+        # profile.img = img
+        profile.img.save(f'profile-{profile.id}.jpg', img)
 
     # save all changes
     profile.save()
