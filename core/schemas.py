@@ -32,18 +32,18 @@ class DrugOut(DrugSchema):
 
 
 class ReviewSchema(Schema):
-    user: ProfileReview
     rating: float
     description: str = None
-    start_date: date
 
 
 class ReviewIn(ReviewSchema):
-    pass
+    Pharmacy_id: int
 
 
 class ReviewOut(ReviewSchema):
-    pass
+    start_date: date
+    user: ProfileReview
+
 
 class OpeningHoursSchema(Schema):
     weekday: str

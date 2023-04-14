@@ -15,6 +15,9 @@ class Review(models.Model):
     pharmacy = models.ForeignKey("core.Pharmacy", on_delete=models.CASCADE)
     start_date = models.DateTimeField(auto_now_add=True)
 
+    class Meta:
+        unique_together = ['pharmacy', 'user']
+
     def __str__(self):
         return f"{self.user} / {self.rating}"
 

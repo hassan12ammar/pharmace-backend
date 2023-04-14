@@ -7,7 +7,7 @@ from pharmace.utlize.custom_classes import Error
 from auth_profile.authentication import CustomAuth
 from pharmace.utlize.utlize import get_user_profile
 from .schemas import (CartOut, DrugItemOut, PharmacyOut, 
-                      PharmacyShort, MessageOut, ReviewOut)
+                      PharmacyShort, MessageOut, ReviewIn, ReviewOut)
 
 # 
 pharmacy_router = Router()
@@ -49,6 +49,92 @@ def get_pharm_reviews(request, id: int):
     return Review.objects.filter(pharmacy=pharmacy)
 
 
+@pharmacy_router.get("search_pharmacy/{name}",
+                     response={200: List[PharmacyShort],
+                               400: MessageOut,},)
+def search_location(request, name: str):
+    return status.HTTP_200_OK, Pharmacy.objects.filter(name__contains=name)
+
+
+@pharmacy_router.get("search_by_location/{location}",
+                     response={200: List[PharmacyShort],
+                               400: MessageOut,},)
+def search_location(request, location: str):
+    return status.HTTP_200_OK, Pharmacy.objects.filter(location__contains=location)
+
+
+@pharmacy_router.get("filter_by_rates/{name}",
+                     response={200: List[PharmacyShort],
+                               400: MessageOut,},)
+def filter_rates(request, name: str):
+    pharmacies = Pharmacy.objects.filter(name__contains=name).order_by("-review__rating")
+
+    return status.HTTP_200_OK, pharmacies
+
+
+@pharmacy_router.get("filter_by_location/{name}",
+                     response={200: List[PharmacyShort],
+                               400: MessageOut,},
+                     auth=CustomAuth(),)
+def filter_location(request, name: str):
+    # get the user from email in auth
+    email = request.auth
+
+    # get user profile
+    profile = get_user_profile(email)
+    if isinstance(profile, Error):
+        return profile.status, profile.message
+
+    pharmacy = Pharmacy.objects.filter(name__contains=name).filter(location__contains=profile.state)
+
+    return status.HTTP_200_OK, pharmacy
+
+
+# TODO Review End-Points Add/Delet/Edit
+@pharmacy_router.post("add_review",
+                      response={200: ReviewOut,
+                                400: MessageOut,
+                                404: MessageOut},
+                      auth=CustomAuth(),)
+def add_review(request, review_in: ReviewIn):
+    # get the user from email in auth
+    email = request.auth
+
+    # get user profile
+    profile = get_user_profile(email)
+    if isinstance(profile, Error):
+        return profile.status, profile.message
+    
+    review, _ = Review.objects.get_or_create(user=profile, pharmacy=review_in.Pharmacy_id)
+    review.rating = review_in.rating
+    review.description = review_in.description
+
+    review.save()
+
+    return review
+
+
+@pharmacy_router.delete("delet_review/{pharmacy_id}",
+                        response={200: MessageOut,
+                                  404: MessageOut,},
+                        auth=CustomAuth(),)
+def delete_review(request, pharmacy_id: int):
+    # get the user from email in auth
+    email = request.auth
+
+    # get user profile
+    profile = get_user_profile(email)
+    if isinstance(profile, Error):
+        return profile.status, profile.message
+  
+    review = Review.objects.filter(user=profile, pharmacy = pharmacy_id)
+    if not review.exists():
+        return status.HTTP_404_NOT_FOUND, MessageOut(detail="Review Not Found")
+
+    review.delete()
+    return status.HTTP_200_OK, MessageOut(detail="Review Deleted Successfully")
+
+
 """ Cart """
 
 
@@ -56,7 +142,7 @@ def get_pharm_reviews(request, id: int):
                  response={200:CartOut},
                  auth=CustomAuth(),)
 def get_cart(request):
-        # get the user from email in auth
+    # get the user from email in auth
     email = request.auth
 
     # get user profile
