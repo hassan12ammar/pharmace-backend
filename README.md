@@ -40,6 +40,11 @@ source source pharmace_venv\Scripts\activate
 pip install -r requirements.txt
 ```
 
+### Make migrations
+``` sh
+python manage.py makemigrations
+```
+
 ### Run migrations
 ``` sh
 python manage.py migrate
