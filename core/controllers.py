@@ -14,7 +14,7 @@ from .schemas import (CartOut, DrugItemOut, PharmacyOut,
 # 
 pharmacy_router = Router()
 cart_router = Router()
-draft_router = Router
+draft_router = Router()
 
 """ Pharmacy """
 

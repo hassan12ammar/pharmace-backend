@@ -4,8 +4,8 @@ from django.urls import path
 from django.contrib import admin
 # local models
 from pharmace.utlize.constant import DESCRIPTION
-from core.controllers import pharmacy_router, cart_router
-from auth_profile.controllers import auth_controller, profile_controller, draft_router
+from core.controllers import pharmacy_router, cart_router, draft_router
+from auth_profile.controllers import auth_controller, profile_controller
 
 api = NinjaAPI(title="pharmace Backend", 
                 description=DESCRIPTION)
