@@ -32,6 +32,14 @@ class SigninIn(Schema):
     email: EmailStr
     password: str
 
+
+class SigninUpIn(UserIn):
+    name: str
+
+class SigninUpOut(AuthOut):
+    name: str
+
+
 # Profile Schemas
 
 class ProfileSchema(Schema):
