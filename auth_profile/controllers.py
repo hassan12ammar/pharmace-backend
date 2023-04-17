@@ -9,7 +9,7 @@ from .models import Profile
 from core.models import Cart
 from pharmace.utlize.custom_classes import Error
 from auth_profile.authentication import CustomAuth, create_token
-from pharmace.utlize.utlize import get_user_profile, password_validator
+from pharmace.utlize.utlize import get_user_profile, password_validator, normalize_email
 from .schemas import AuthOut, MessageOut, ProfileIn, ProfileOut, SigninIn, UserIn
 
 
@@ -44,7 +44,7 @@ def signup(request, acount_in: UserIn):
     if acount_in.password1 != acount_in.password2:
         return status.HTTP_400_BAD_REQUEST, MessageOut(detail="passwords do not match")
     # normalize the data
-    email = acount_in.email.strip().lower().replace(" ", "")
+    email = normalize_email(acount_in.email)
     # check if email is already in use
     if User.objects.filter(email=acount_in.email).exists():
         return status.HTTP_400_BAD_REQUEST, MessageOut(detail="Email is already in use")
@@ -69,12 +69,13 @@ def signup(request, acount_in: UserIn):
                       }
 )
 def signin(request, acount_in: SigninIn):
+    # normalize email
+    email = normalize_email(acount_in.email)
     # check if email exists
-    is_user = User.objects.filter(email=acount_in.email).exists()
+    is_user = User.objects.filter(email=email).exists()
     if not is_user:
         return status.HTTP_404_NOT_FOUND, MessageOut(detail="User is not registered Or Email is wrong")
-    # normalize email
-    email = acount_in.email.strip().lower().replace(" ", "")
+
     # check if password is correct
     user = User.objects.get(email=email)
     if user.check_password(acount_in.password):
@@ -105,7 +106,7 @@ def all_profile(request):
 )
 def get_profile(request):
     # get email from auth request
-    email = request.auth
+    email = normalize_email(request.auth)
 
     # check if user and profile exists
     profile = get_user_profile(email)
@@ -124,7 +125,7 @@ def get_profile(request):
 )
 def create_profile(request, profile_in: ProfileIn, img: UploadedFile=None):
     # get email from auth request
-    email = request.auth
+    email = normalize_email(request.auth)
 
     # get the user iAttributeError: _committednstance
     try:
@@ -183,7 +184,7 @@ def create_profile(request, profile_in: ProfileIn, img: UploadedFile=None):
 )
 def edit_profile(request, profile_in: ProfileIn=Body(...), img: UploadedFile=File(None)):
     # get email from auth request
-    email = request.auth
+    email = normalize_email(request.auth)
 
     # Check if user profile exists
     profile = get_user_profile(email)

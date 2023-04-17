@@ -23,15 +23,15 @@ def password_validator(password: str) -> Union[str, None]:
     if not len(password) >= 8:
         return 'Password is too short (8 characters minimum)'
     # define pattern for password validation 
-    reg = "^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,}$"
+    reg = "^(?=.*[A-Za-z])(?=.*\d).{8,}$"
     # compiling regex
     pattern = re.compile(reg)
     # searching regex
     is_match = re.search(pattern, password)
     # raising error if password is not valid
     if not is_match:
-        return 'Password must contain at least one uppercase letter, \
-            one lowercase letter, one number and one special character'
+        return 'Password must be at least 8 characters long, and one letter, one number'
+
     return None
 
 
@@ -81,3 +81,5 @@ def get_user_profile(email: str) -> Union[Profile, Error]:
         return Error(status.HTTP_400_BAD_REQUEST, MessageOut(detail=e.args[0]))
     return user_profile
 
+def normalize_email(email: str) -> str:
+    return email.strip().lower().replace(" ", "")
