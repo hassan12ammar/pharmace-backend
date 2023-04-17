@@ -10,7 +10,7 @@ from core.models import Cart
 from pharmace.utlize.custom_classes import Error
 from auth_profile.authentication import CustomAuth, create_token
 from pharmace.utlize.utlize import get_user_profile, password_validator, normalize_email
-from .schemas import AuthOut, MessageOut, ProfileIn, ProfileOut, SigninIn, UserIn
+from .schemas import AuthOut, MessageOut, ProfileIn, ProfileOut, SigninIn, SigninUpIn, SigninUpOut
 
 
 # Create your views here.
@@ -25,11 +25,11 @@ profile_controller = Router()
 
 @auth_controller.post("signup", 
                       response={
-                        201: AuthOut,
+                        201: SigninUpOut,
                         400: MessageOut,
                       }
 )
-def signup(request, acount_in: UserIn):
+def signup(request, acount_in: SigninUpIn):
     """
     passwor must contain at least:
     - 8 characters long
@@ -49,16 +49,20 @@ def signup(request, acount_in: UserIn):
     if User.objects.filter(email=acount_in.email).exists():
         return status.HTTP_400_BAD_REQUEST, MessageOut(detail="Email is already in use")
     # create user
-    self_user = User.objects.create_user(
+    user = User.objects.create_user(
         # name=name,
         email=email,
         password=acount_in.password1
     )
+    # create empty profile with just name and user
+    profile = Profile.objects.create(user=user, 
+                           name=acount_in.name)
     # create token for the user
-    token = create_token(self_user)
-    
-    return status.HTTP_201_CREATED, AuthOut(token=token,
-                                             user=self_user)
+    token = create_token(user)
+
+    return status.HTTP_201_CREATED, SigninUpOut(token=token,
+                                                 user=user,
+                                                 name=profile.name)
 
 
 @auth_controller.post("signin", 
