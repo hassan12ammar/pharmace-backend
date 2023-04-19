@@ -54,7 +54,8 @@ class ProfileIn(ProfileSchema):
 
 class ProfileOut(ProfileSchema):
     img: Optional[str] = None
-    address: str
+    state: str
+    city: str
     email: EmailStr
 
 

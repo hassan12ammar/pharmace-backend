@@ -70,10 +70,6 @@ class Profile(models.Model):
         return str(self.phone)
 
     @property
-    def address(self):
-        return f"{self.city} / {self.state}"
-
-    @property
     def email(self):
         return self.user.email
 
