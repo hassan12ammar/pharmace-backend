@@ -49,12 +49,12 @@ class ProfileSchema(Schema):
 
 class ProfileIn(ProfileSchema):
     city: str
-    state: str
+    province: str
 
 
 class ProfileOut(ProfileSchema):
     img: Optional[str] = None
-    state: str
+    province: str
     city: str
     email: EmailStr
 
