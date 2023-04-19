@@ -34,8 +34,8 @@ class EmailAccountManager(UserManager):
 # Overriding the default User model
 class CustomUser(AbstractUser, models.Model):
     username = models.NOT_PROVIDED # remove username field
-    email = models.EmailField(max_length=255, unique=True)
-    # name = models.CharField(max_length=100)
+    email = models.EmailField(max_length=255, unique=True, 
+                              primary_key=True)
 
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = []
@@ -62,7 +62,7 @@ class Profile(models.Model):
                             null=True, blank=True)
     # for address
     city = models.CharField(max_length=85)
-    state = models.CharField(max_length=85)
+    province = models.CharField(max_length=85)
     phone = PhoneNumberField(blank=True, null=True)
 
     @property
