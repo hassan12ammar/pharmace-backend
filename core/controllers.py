@@ -1,7 +1,10 @@
+from PIL import Image
 from typing import List
-from ninja import Router, UploadedFile
 from rest_framework import status
+from ninja import Router, UploadedFile
+from auth_profile.models import Profile
 from django.core.paginator import Paginator
+from django.contrib.auth import get_user_model
 from django.core.files.uploadedfile import SimpleUploadedFile
 # locall models
 from .models import Cart, DrugItem, Pharmacy, Review, Drug
@@ -9,7 +12,8 @@ from pharmace.utlize.custom_classes import Error
 from auth_profile.authentication import CustomAuth
 from pharmace.utlize.utlize import get_user_profile, normalize_email
 from .schemas import (CartOut, DrugItemOut, PharmacyOut, 
-                      PharmacyShort, MessageOut, ReviewIn, ReviewOut)
+                      PharmacyShort, MessageOut, ReviewIn, ReviewOut, SeedSchema)
+User = get_user_model()
 
 # 
 pharmacy_router = Router()
@@ -98,7 +102,7 @@ def filter_location(request, name: str):
     if isinstance(profile, Error):
         return profile.status, profile.message
 
-    pharmacy = Pharmacy.objects.filter(name__contains=name).filter(location__contains=profile.state)
+    pharmacy = Pharmacy.objects.filter(name__contains=name).filter(location__contains=profile.province)
 
     return status.HTTP_200_OK, pharmacy
 
@@ -264,26 +268,62 @@ def decrease_from_cart(request, drug_id: int):
 """ Draft """
 
 
-@draft_router.post("create", response={200: MessageOut})
-def create(request, img: UploadedFile):
+@draft_router.post("create_seed", response={200: SeedSchema})
+def create(request):
+    """
+    make sure you have these files:
+        - seed_img/drug.png
+        - seed_img/pharmacy.jpg
+        - seed_img/profile.png
+    """
 
-    img_data = img.read()
-    img_name = img.name
-    img = SimpleUploadedFile(img_name, img_data, content_type='image/jpeg')
+    pharmacy_img = "seed_img/pharmacy.jpg"
 
+    pharmacies = []
     for i in range(10):
-        Pharmacy.objects.create(
-            name=f"{i} Nahr",
-            description="A family-owned pharmacy that has been serving the community",
-            location="Al Mansour / alroad / cross meshmesha",
-            img=img,
+        pharmacy, _ = Pharmacy.objects.get_or_create(
+                name=f"{i} Nahr",
+                description="A family-owned pharmacy that has been serving the community",
+                location="Al Mansour / alroad / cross meshmesha",
+                img=pharmacy_img,
         )
 
-    return status.HTTP_200_OK, MessageOut(detail="Done")
+        pharmacies.append(pharmacy)
 
 
+    drug_img = "seed_img/drug.png"
 
-@cart_router.put("remove_from_cart/{drug_id}",
+    for pharmacy_ in range(len(pharmacies)):
+        for drug_ in range(10):
+            Drug.objects.get_or_create(
+                name = f"{drug_} Ibuprofen 200mg tablets",
+                description ="Pain relief for headaches, toothaches, menstrual cramps, and other minor aches and pains.",
+                img = drug_img,
+                price=4.99,
+                is_active=True,
+                pharmacy=pharmacies[pharmacy_],
+            )
+
+    user, _ = User.objects.get_or_create(
+        email= 'user1@example.com',
+        password= 'String1@',
+    )
+
+    profile_img = "seed_img/profile.png"
+
+    profile, _ = Profile.objects.get_or_create(
+        user=user, 
+        name='BASBOS',
+        img=profile_img
+    )
+
+    return status.HTTP_200_OK, SeedSchema(
+        pharmacies= pharmacies,
+        profile= profile
+        )
+
+
+@draft_router.put("remove_from_cart/{drug_id}",
                   response={
                       200: DrugItemOut,
                       400: MessageOut,

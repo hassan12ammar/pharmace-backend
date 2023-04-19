@@ -157,3 +157,8 @@ class CartIn(CartSchema):
 
 class CartOut(CartSchema):
     pass
+
+
+class SeedSchema(Schema):
+    pharmacies: List[PharmacyOut]
+    profile: ProfileOut
