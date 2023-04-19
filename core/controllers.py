@@ -91,7 +91,7 @@ def filter_rates(request, name: str):
                      auth=CustomAuth(),)
 def filter_location(request, name: str):
     # get the user from email in auth
-    email = normalize_email(email)
+    email = normalize_email(request.auth)
 
     # get user profile
     profile = get_user_profile(email)
@@ -110,7 +110,7 @@ def filter_location(request, name: str):
                       auth=CustomAuth(),)
 def add_edit_review(request, review_in: ReviewIn):
     # get the user from email in auth
-    email = normalize_email(email)
+    email = normalize_email(request.auth)
 
     # get user profile
     profile = get_user_profile(email)
@@ -136,7 +136,7 @@ def add_edit_review(request, review_in: ReviewIn):
                         auth=CustomAuth(),)
 def delete_review(request, pharmacy_id: int):
     # get the user from email in auth
-    email = normalize_email(email)
+    email = normalize_email(request.auth)
 
     # get user profile
     profile = get_user_profile(email)
@@ -159,7 +159,7 @@ def delete_review(request, pharmacy_id: int):
                  auth=CustomAuth(),)
 def get_cart(request):
     # get the user from email in auth
-    email = normalize_email(email)
+    email = normalize_email(request.auth)
 
     # get user profile
     profile = get_user_profile(email)
@@ -194,7 +194,7 @@ def get_cart(request):
                 auth=CustomAuth(),)
 def add_to_cart(request, drug_id: int):
     # get the user from email in auth
-    email = normalize_email(email)
+    email = normalize_email(request.auth)
 
     # check if user and profile exists
     profile = get_user_profile(email)
@@ -232,7 +232,7 @@ def add_to_cart(request, drug_id: int):
                 auth=CustomAuth(),)
 def decrease_from_cart(request, drug_id: int):
     # get the user from email in auth
-    email = normalize_email(email)
+    email = normalize_email(request.auth)
 
     # check if user and profile exists
     profile = get_user_profile(email)
@@ -292,7 +292,7 @@ def create(request, img: UploadedFile):
                 auth=CustomAuth(),)
 def remove_from_cart(request, drug_id: int):
     # get the user from email in auth
-    email = normalize_email(email)
+    email = normalize_email(request.auth)
 
     # check if user and profile exists
     profile = get_user_profile(email)
