@@ -1,9 +1,11 @@
 from typing import List
 from ninja import Schema
 from datetime import date, time
+from django.core.paginator import Paginator
 # local models
-from auth_profile.schemas import ProfileOut
 from core.models import Drug
+from auth_profile.schemas import ProfileOut
+from pharmace.utlize.constant import DRUG_PER_PAGE
 
 
 # General Schemas
@@ -87,7 +89,15 @@ class PharmacySchema(Schema):
 
     @staticmethod
     def resolve_drugs(self):
-        return Drug.objects.filter(pharmacy=self)
+        drugs = Drug.objects.filter(pharmacy=self)
+        # Pagination
+        paginator = Paginator(list(drugs), DRUG_PER_PAGE)
+
+        page_obj = paginator.get_page(1)
+
+        return [drug 
+                for drug in page_obj]
+
 
     @staticmethod
     def resolve_pct_rates(self):

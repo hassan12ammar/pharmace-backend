@@ -12,3 +12,5 @@ DEBUG = bool(os.environ['DEBUG'])
 DESCRIPTION="Pharmaceutical is a backend API for an e-commerce website for pharmacies. \
     The API is built using Django and Django Ninja and allows users to perform various operations\
         related to authentication, user profiles, pharmacies, drugs, and shopping cart management."
+PHARMACY_PER_PAGE = 5
+DRUG_PER_PAGE = 5

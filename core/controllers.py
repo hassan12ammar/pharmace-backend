@@ -1,17 +1,18 @@
 from PIL import Image
 from typing import List
+from ninja import Router
 from rest_framework import status
-from ninja import Router, UploadedFile
 from auth_profile.models import Profile
 from django.core.paginator import Paginator
 from django.contrib.auth import get_user_model
-from django.core.files.uploadedfile import SimpleUploadedFile
+
+from pharmace.utlize.constant import DRUG_PER_PAGE, PHARMACY_PER_PAGE
 # locall models
 from .models import Cart, DrugItem, Pharmacy, Review, Drug
 from pharmace.utlize.custom_classes import Error
 from auth_profile.authentication import CustomAuth
 from pharmace.utlize.utlize import get_user_profile, normalize_email
-from .schemas import (CartOut, DrugItemOut, PharmacyOut, 
+from .schemas import (CartOut, DrugItemOut, DrugOut, PharmacyOut, 
                       PharmacyShort, MessageOut, ReviewIn, ReviewOut, SeedSchema)
 User = get_user_model()
 
@@ -30,7 +31,7 @@ draft_router = Router()
 def get_all(request, page_number: int):
     pharmacies = Pharmacy.objects.all().order_by('id')
     # Set the number of objects per page
-    paginator = Paginator(list(pharmacies), 6)
+    paginator = Paginator(list(pharmacies), PHARMACY_PER_PAGE)
 
     page_obj = paginator.get_page(page_number)
 
@@ -51,6 +52,28 @@ def get_by_id(request, id: int):
         return status.HTTP_400_BAD_REQUEST, MessageOut(detail=f"Pharmacy with id {id} Not Found")
 
     return status.HTTP_200_OK, Pharmacy.objects.filter(id=id)
+
+
+@pharmacy_router.get("get_druge/{pharmacy_id}/{page_number}",
+                     response={
+                         200:List[DrugOut],
+                         400: MessageOut
+                     })
+def get_druge(request, pharmacy_id: int, page_number: int):
+    drugs = Drug.objects.filter(pharmacy=pharmacy_id)
+
+    if not drugs:
+        return (status.HTTP_400_BAD_REQUEST, 
+                MessageOut(detail=f"No Drugs with id {pharmacy_id}"))
+
+    # Pagination
+    paginator = Paginator(list(drugs), DRUG_PER_PAGE)
+    page_obj = paginator.get_page(page_number)
+
+    serialized_data = [drug 
+                       for drug in page_obj]
+
+    return status.HTTP_200_OK, serialized_data
 
 
 @pharmacy_router.get("get_reviews/{id}",
