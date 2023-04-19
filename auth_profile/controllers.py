@@ -152,7 +152,7 @@ def create_profile(request, profile_in: ProfileIn, img: UploadedFile=None):
         user=user,
         name=profile_in.name,
         city=profile_in.city,
-        state=profile_in.state,
+        province=profile_in.province,
         phone=profile_in.phone_number,
     )
 
@@ -171,7 +171,8 @@ def create_profile(request, profile_in: ProfileIn, img: UploadedFile=None):
     project_dict = profile.__dict__
     project_dict["email"] = profile.user.email
     project_dict["img"] = str(project_dict["img"])
-    project_dict["address"] = profile.address
+    project_dict["city"] = profile.city
+    project_dict["province"] = profile.province
     project_dict["phone_number"] = profile.phone_number
 
     profile_out = ProfileOut(**project_dict)
@@ -204,7 +205,7 @@ def edit_profile(request, profile_in: ProfileIn=Body(...), img: UploadedFile=Fil
     # Update the user profile
     profile.name = profile_in.name
     profile.city=profile_in.city
-    profile.state=profile_in.state
+    profile.province=profile_in.province
     profile.phone=profile_in.phone_number
 
     # Save new profile picture if provided
