@@ -1,4 +1,3 @@
-from PIL import Image
 from typing import List
 from ninja import Router
 from rest_framework import status
