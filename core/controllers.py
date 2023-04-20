@@ -4,7 +4,6 @@ from rest_framework import status
 from auth_profile.models import Profile
 from django.core.paginator import Paginator
 from django.contrib.auth import get_user_model
-
 from pharmace.utlize.constant import DRUG_PER_PAGE, PHARMACY_PER_PAGE
 # locall models
 from .models import Cart, DrugItem, Pharmacy, Review, Drug

@@ -1,4 +1,5 @@
 import os
+from uuid import uuid4
 from typing import List
 from rest_framework import status
 from ninja import Body, File, Router, UploadedFile
@@ -158,7 +159,7 @@ def create_profile(request, profile_in: ProfileIn, img: UploadedFile=None):
 
     # Save profile picture
     if img:
-        profile.img.save(f'profile-{profile.id}.jpg', img)
+        profile.img.save(f'profile-{profile.id}-{uuid4()}.jpg', img)
     else: profile.img=img
 
     # save all changes
@@ -214,7 +215,7 @@ def edit_profile(request, profile_in: ProfileIn=Body(...), img: UploadedFile=Fil
         if profile.img:
             os.remove(profile.img.path)
         # profile.img = img
-        profile.img.save(f'profile-{profile.id}.jpg', img)
+        profile.img.save(f'profile-{profile.id}-{uuid4()}.jpg', img)
 
     # save all changes
     profile.save()
