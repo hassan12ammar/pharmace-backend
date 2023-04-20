@@ -67,7 +67,8 @@ class Profile(models.Model):
 
     @property
     def phone_number(self):
-        return str(self.phone)
+        phone = self.phone
+        return str(phone) if phone else phone
 
     @property
     def email(self):
