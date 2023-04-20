@@ -1,7 +1,9 @@
 """ pharmace URL Configuration """
 from ninja import NinjaAPI
 from django.urls import path
+from django.conf import settings
 from django.contrib import admin
+from django.conf.urls.static import static
 # local models
 from pharmace.utlize.constant import DESCRIPTION
 from core.controllers import pharmacy_router, cart_router, draft_router
@@ -20,4 +22,4 @@ api.add_router("draft", draft_router, tags=["Draft"])
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/', api.urls),
-]
+] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

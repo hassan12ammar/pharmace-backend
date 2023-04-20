@@ -148,7 +148,10 @@ cython_debug/
 local_settings.py
 db.sqlite3
 db.sqlite3-journal
-media
+
+**/media/**
+!**media/seed_img
+!**media/seed_img/**
 
 # If your build process includes running collectstatic, then you probably don't need or want to include staticfiles/
 # in your Git repository. Update and uncomment the following line accordingly.
@@ -169,14 +172,5 @@ media
 **/migrations/**
 !**/migrations
 !**/migrations/__init__.py
-
-# ignore imgs
-**/drug_imgs/**
-!**/drug_imgs
-**/pharmacy_imgs/**
-!**/pharmacy_imgs
-**/profile_imgs/**
-!**/profile_imgs
-
 
 # End of https://mrkandreev.name/snippets/gitignore-generator/#Python,Django,VisualStudioCode
