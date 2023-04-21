@@ -3,7 +3,7 @@ from django.core.validators import MaxValueValidator, MinValueValidator
 
 
 class Review(models.Model):
-    user = models.OneToOneField("auth_profile.Profile", 
+    user = models.ForeignKey("auth_profile.Profile", 
                                 verbose_name=("user_profile"), 
                                 on_delete=models.CASCADE)
     rating = models.FloatField("rate stars", 
@@ -21,7 +21,6 @@ class Review(models.Model):
     def __str__(self):
         return f"{self.user} / {self.rating}"
 
-
 class OpeningHours(models.Model):
     class DayChoices(models.TextChoices):
         SAN = "SAN"
@@ -33,8 +32,7 @@ class OpeningHours(models.Model):
         SAT = "SAT"
 
     weekday = models.CharField(max_length=3, choices=DayChoices.choices)
-    from_hour = models.TimeField()
-    to_hour = models.TimeField()
+    hours = models.CharField(max_length=25)
 
     pharmacy = models.ForeignKey("core.Pharmacy", 
                                  on_delete=models.CASCADE, 

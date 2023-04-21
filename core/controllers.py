@@ -1,12 +1,12 @@
+import random
 from typing import List
 from ninja import Router
 from rest_framework import status
 from auth_profile.models import Profile
-from django.core.paginator import Paginator
 from django.contrib.auth import get_user_model
-from pharmace.utlize.constant import DRUG_PER_PAGE, PHARMACY_PER_PAGE
+from pharmace.utlize.constant import DRUG_PER_PAGE, PHARMACY_PER_PAGE, REVIEW_DESCRIPTION
 # locall models
-from .models import Cart, DrugItem, Pharmacy, Review, Drug
+from .models import Cart, DrugItem, OpeningHours, Pharmacy, Review, Drug
 from pharmace.utlize.custom_classes import Error
 from auth_profile.authentication import CustomAuth
 from pharmace.utlize.utlize import get_user_profile, normalize_email
@@ -24,24 +24,26 @@ draft_router = Router()
 
 @pharmacy_router.get("get_all/{page_number}",
                      response={
-                         200:List[PharmacyShort],
+                         200:List[PharmacyOut],
+                         400: MessageOut
                      })
 def get_all(request, page_number: int):
-    pharmacies = Pharmacy.objects.all().order_by('id')
-    # Set the number of objects per page
-    paginator = Paginator(list(pharmacies), PHARMACY_PER_PAGE)
+    # validate page number
+    if page_number <= 0:
+        return status.HTTP_400_BAD_REQUEST, MessageOut(
+                detail="Invalid page number Has to be grater than 0")
 
-    page_obj = paginator.get_page(page_number)
+    start = (page_number - 1) * PHARMACY_PER_PAGE
+    end = start + PHARMACY_PER_PAGE
 
-    serialized_data = [pharmacy 
-                       for pharmacy in page_obj]
+    pharmacies = Pharmacy.objects.order_by('-id')[start:end]
 
-    return status.HTTP_200_OK, serialized_data
+    return status.HTTP_200_OK, list(pharmacies)
 
 
 @pharmacy_router.get("get_by_id/{id}",
                      response={
-                         200:List[PharmacyOut],
+                         200:PharmacyOut,
                          400: MessageOut
                      })
 def get_by_id(request, id: int):
@@ -49,7 +51,7 @@ def get_by_id(request, id: int):
     if not pharmacy:
         return status.HTTP_400_BAD_REQUEST, MessageOut(detail=f"Pharmacy with id {id} Not Found")
 
-    return status.HTTP_200_OK, Pharmacy.objects.filter(id=id)
+    return status.HTTP_200_OK, Pharmacy.objects.filter(id=id).first()
 
 
 @pharmacy_router.get("get_druge/{pharmacy_id}/{page_number}",
@@ -58,20 +60,21 @@ def get_by_id(request, id: int):
                          400: MessageOut
                      })
 def get_druge(request, pharmacy_id: int, page_number: int):
-    drugs = Drug.objects.filter(pharmacy=pharmacy_id)
+    # validate page number
+    if page_number <= 0:
+        return status.HTTP_400_BAD_REQUEST, MessageOut(
+                detail="Invalid page number Has to be grater than 0")
+
+    start = (page_number - 1) * DRUG_PER_PAGE
+    end = start + DRUG_PER_PAGE
+
+    drugs = Drug.objects.filter(pharmacy=pharmacy_id)[start:end]
 
     if not drugs:
         return (status.HTTP_400_BAD_REQUEST, 
                 MessageOut(detail=f"No Drugs with id {pharmacy_id}"))
 
-    # Pagination
-    paginator = Paginator(list(drugs), DRUG_PER_PAGE)
-    page_obj = paginator.get_page(page_number)
-
-    serialized_data = [drug 
-                       for drug in page_obj]
-
-    return status.HTTP_200_OK, serialized_data
+    return status.HTTP_200_OK, drugs
 
 
 @pharmacy_router.get("get_reviews/{id}",
@@ -298,16 +301,61 @@ def create(request):
         - seed_img/profile.png
     """
 
+    profile_img = "seed_img/profile.png"
+
+    profile_users = []
+    for user_ in range(12):
+        user, _ = User.objects.get_or_create(
+            email= f'user{user_}@example.com',
+            password= 'String1@',
+        )
+
+        profile, _ = Profile.objects.get_or_create(
+            user=user, 
+            name='BASBOS',
+            img=profile_img
+        )
+
+        profile_users.append(profile)
+
     pharmacy_img = "seed_img/pharmacy.jpg"
 
     pharmacies = []
     for i in range(10):
         pharmacy, _ = Pharmacy.objects.get_or_create(
-                name=f"{i} Nahr",
+                name=f"{i} Nahr AL-Dawaa",
                 description="A family-owned pharmacy that has been serving the community",
                 location="Al Mansour / alroad / cross meshmesha",
                 img=pharmacy_img,
         )
+
+        # create opening hours
+        for choice in OpeningHours.DayChoices.choices:
+            choice = choice[0]
+            open_hours, created = OpeningHours.objects.get_or_create(weekday=choice,
+                                                               pharmacy=pharmacy,)
+            if created:
+                hours = "9:00 AM - 9:00 PM"
+                if choice == "FRI":
+                    hours = "closed"
+
+                open_hours.hours = hours
+                open_hours.save()
+
+        # create reviews
+        for usr_indx in range(12):
+            # print("-----------------")
+            # print(i, usr_indx)
+            # print(profile_users[usr_indx].id, pharmacy.id)
+            # print("-----------------")
+            review = Review.objects.filter(user=profile_users[usr_indx],
+                                         pharmacy=pharmacy,)
+            if review.exists():
+                continue
+            Review.objects.create(user=profile_users[usr_indx],
+                                         pharmacy=pharmacy,
+                                         rating=random.uniform(0.0, 5.0),
+                                         description=REVIEW_DESCRIPTION,)
 
         pharmacies.append(pharmacy)
 
@@ -315,7 +363,7 @@ def create(request):
     drug_img = "seed_img/drug.png"
 
     for pharmacy_ in range(len(pharmacies)):
-        for drug_ in range(10):
+        for drug_ in range(20):
             Drug.objects.get_or_create(
                 name = f"{drug_} Ibuprofen 200mg tablets",
                 description ="Pain relief for headaches, toothaches, menstrual cramps, and other minor aches and pains.",
@@ -325,22 +373,10 @@ def create(request):
                 pharmacy=pharmacies[pharmacy_],
             )
 
-    user, _ = User.objects.get_or_create(
-        email= 'user1@example.com',
-        password= 'String1@',
-    )
-
-    profile_img = "seed_img/profile.png"
-
-    profile, _ = Profile.objects.get_or_create(
-        user=user, 
-        name='BASBOS',
-        img=profile_img
-    )
 
     return status.HTTP_200_OK, SeedSchema(
         pharmacies= pharmacies,
-        profile= profile
+        profile= profile_users[1]
         )
 
 

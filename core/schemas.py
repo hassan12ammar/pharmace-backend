@@ -1,11 +1,10 @@
 from typing import List
 from ninja import Schema
 from datetime import date, time
-from django.core.paginator import Paginator
 # local models
-from core.models import Drug
+from core.models import Drug, Review
 from auth_profile.schemas import ProfileOut
-from pharmace.utlize.constant import DRUG_PER_PAGE
+from pharmace.utlize.constant import DRUG_PER_PAGE, REVIEW_PER_PAGE
 
 
 # General Schemas
@@ -49,8 +48,7 @@ class ReviewOut(ReviewSchema):
 
 class OpeningHoursSchema(Schema):
     weekday: str
-    from_hour: time
-    to_hour: time
+    hours: str
 
 
 class PharmacyShort(Schema):
@@ -89,14 +87,9 @@ class PharmacySchema(Schema):
 
     @staticmethod
     def resolve_drugs(self):
-        drugs = Drug.objects.filter(pharmacy=self)
-        # Pagination
-        paginator = Paginator(list(drugs), DRUG_PER_PAGE)
+        drugs = Drug.objects.filter(pharmacy=self)[:DRUG_PER_PAGE]
 
-        page_obj = paginator.get_page(1)
-
-        return [drug 
-                for drug in page_obj]
+        return drugs
 
 
     @staticmethod
@@ -121,6 +114,15 @@ class PharmacyIn(PharmacySchema):
 
 class PharmacyOut(PharmacySchema):
     id: int
+    reviews: List[ReviewOut] = None
+
+    @staticmethod
+    def resolve_reviews(self):
+        # print("_----------------_")
+        # print(self)
+        # print(Review.objects.filter(pharmacy=self))
+        # print("_----------------_")
+        return Review.objects.filter(pharmacy=self)[:REVIEW_PER_PAGE]
 
 
 """ Cart Schemas """
