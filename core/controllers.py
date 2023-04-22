@@ -24,7 +24,7 @@ draft_router = Router()
 
 @pharmacy_router.get("get_all/{page_number}",
                      response={
-                         200:List[PharmacyOut],
+                         200:List[PharmacyShort],
                          400: MessageOut
                      })
 def get_all(request, page_number: int):
@@ -305,10 +305,15 @@ def create(request):
 
     profile_users = []
     for user_ in range(12):
-        user, _ = User.objects.get_or_create(
-            email= f'user{user_}@example.com',
-            password= 'String1@',
-        )
+        
+        user = User.objects.filter(email= f'user{user_}@example.com')
+        if user.exists():
+            user = user.first()
+        else:
+            user = User.objects.create_user(
+                email= f'user{user_}@example.com',
+                password= 'String1@',
+            )
 
         profile, _ = Profile.objects.get_or_create(
             user=user, 
@@ -344,10 +349,6 @@ def create(request):
 
         # create reviews
         for usr_indx in range(12):
-            # print("-----------------")
-            # print(i, usr_indx)
-            # print(profile_users[usr_indx].id, pharmacy.id)
-            # print("-----------------")
             review = Review.objects.filter(user=profile_users[usr_indx],
                                          pharmacy=pharmacy,)
             if review.exists():

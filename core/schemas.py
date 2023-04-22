@@ -1,6 +1,8 @@
 from typing import List
 from ninja import Schema
-from datetime import date, time
+from datetime import date
+from django.db.models import Count, Q, Avg
+from django.db.models.functions import Round
 # local models
 from core.models import Drug, Review
 from auth_profile.schemas import ProfileOut
@@ -35,6 +37,10 @@ class DrugOut(DrugSchema):
 class ReviewSchema(Schema):
     rating: float
     description: str = None
+    
+    @staticmethod
+    def resolve_rating(self):
+        return round(self.rating, 1)
 
 
 class ReviewIn(ReviewSchema):
@@ -59,26 +65,43 @@ class PharmacyShort(Schema):
     location: str
 
     avg_stars: float
+    pct_rates: dict = None
 
     @staticmethod
     def resolve_avg_stars(self):
-        reviews = self.review_set.all()
-        rates = [review.rating 
-                 for review in reviews]
-        if not rates:
+        avg_rating = self.review_set.aggregate(avg_rating=Avg('rating'))['avg_rating']
+        if avg_rating is None:
             return 0
 
-        return sum(rates) / len(rates)
+        return round(avg_rating, 1)
+
+    @staticmethod
+    def resolve_pct_rates(self):
+
+        has_reviews = self.review_set.exists()
+
+        if not has_reviews:
+            return
+
+        rating_counts = self.review_set.filter(
+            Q(rating__gte=0.5, rating__lt=1.5) |
+            Q(rating__gte=1.5, rating__lt=2.5) |
+            Q(rating__gte=2.5, rating__lt=3.5) |
+            Q(rating__gte=3.5, rating__lt=4.5) |
+            Q(rating__gte=4.5)
+        ).annotate(rounded_rating=Round('rating')).values('rounded_rating').annotate(count=Count('id'))
+
+        counts = {rating_count['rounded_rating']: rating_count['count'] for rating_count in rating_counts}
+        total_count = sum(counts.values())
+        percentages = {i: round(counts.get(i, 0) / total_count * 100)
+                       for i in range(1, 6)}
+
+        return percentages
 
 
-class PharmacySchema(Schema):
-    name: str
-    description: str
-    img: str
-    location: str
+class PharmacySchema(PharmacyShort):
     drugs: List[DrugOut]
 
-    pct_rates: dict = None
     opening_hours: List[OpeningHoursSchema]
 
     @staticmethod
@@ -92,22 +115,6 @@ class PharmacySchema(Schema):
         return drugs
 
 
-    @staticmethod
-    def resolve_pct_rates(self):
-        rates = [round(review.rating) 
-                 for review in self.review_set.all()]
-
-        if not rates:
-            return
-
-        counts = {i: rates.count(i) 
-                  for i in range(1, 5 +1)}
-        percentages = {i: round(counts[i] / len(rates) * 100) 
-                       for i in range(1, 6)}
-
-        return percentages
-
-
 class PharmacyIn(PharmacySchema):
     pass
 
@@ -118,10 +125,6 @@ class PharmacyOut(PharmacySchema):
 
     @staticmethod
     def resolve_reviews(self):
-        # print("_----------------_")
-        # print(self)
-        # print(Review.objects.filter(pharmacy=self))
-        # print("_----------------_")
         return Review.objects.filter(pharmacy=self)[:REVIEW_PER_PAGE]
 
 
