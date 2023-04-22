@@ -323,6 +323,8 @@ def create(request):
             name='BASBOS',
             img=profile_img
         )
+        # create empty Cart for the user
+        Cart.objects.create(user=profile)
 
         profile_users.append(profile)
 
