@@ -4,7 +4,7 @@ from ninja import Router
 from rest_framework import status
 from auth_profile.models import Profile
 from django.contrib.auth import get_user_model
-from pharmace.utlize.constant import DRUG_PER_PAGE, PHARMACY_PER_PAGE, REVIEW_DESCRIPTION
+from pharmace.utlize.constant import DRUG_PER_PAGE, PHARMACY_PER_PAGE, REVIEW_DESCRIPTION, REVIEW_PER_PAGE
 # locall models
 from .models import Cart, DrugItem, OpeningHours, Pharmacy, Review, Drug
 from pharmace.utlize.custom_classes import Error
@@ -36,7 +36,7 @@ def get_all(request, page_number: int):
     start = (page_number - 1) * PHARMACY_PER_PAGE
     end = start + PHARMACY_PER_PAGE
 
-    pharmacies = Pharmacy.objects.order_by('-id')[start:end]
+    pharmacies = Pharmacy.objects.order_by('id')[start:end]
 
     return status.HTTP_200_OK, list(pharmacies)
 
@@ -82,12 +82,15 @@ def get_druge(request, pharmacy_id: int, page_number: int):
                          200:List[ReviewOut],
                          400: MessageOut,
                      },)
-def get_pharm_reviews(request, id: int):
+def get_pharm_reviews(request, id: int, page_number: int=1):
     pharmacy = Pharmacy.objects.filter(id=id).first()
     if not pharmacy:
         return status.HTTP_400_BAD_REQUEST, MessageOut(detail=f"Pharmacy with id {id} Not Found")
 
-    return Review.objects.filter(pharmacy=pharmacy)
+    start = (page_number - 1) * REVIEW_PER_PAGE
+    end = start + REVIEW_PER_PAGE
+
+    return Review.objects.filter(pharmacy=pharmacy).order_by("-id")[start:end]
 
 
 @pharmacy_router.get("search_pharmacy/{name}",
@@ -353,6 +356,7 @@ def create(request):
                                          pharmacy=pharmacy,)
             if review.exists():
                 continue
+
             Review.objects.create(user=profile_users[usr_indx],
                                          pharmacy=pharmacy,
                                          rating=random.uniform(0.0, 5.0),

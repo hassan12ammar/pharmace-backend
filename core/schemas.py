@@ -125,7 +125,7 @@ class PharmacyOut(PharmacySchema):
 
     @staticmethod
     def resolve_reviews(self):
-        return Review.objects.filter(pharmacy=self)[:REVIEW_PER_PAGE]
+        return Review.objects.filter(pharmacy=self).order_by("-id")[:REVIEW_PER_PAGE]
 
 
 """ Cart Schemas """
