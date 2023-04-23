@@ -10,7 +10,7 @@ from .models import Cart, DrugItem, OpeningHours, Pharmacy, Review, Drug
 from pharmace.utlize.custom_classes import Error
 from auth_profile.authentication import CustomAuth
 from pharmace.utlize.utlize import get_user_profile, normalize_email
-from .schemas import (CartOut, DrugItemOut, DrugOut, PharmacyOut, 
+from .schemas import (CartOut, Checkout, DrugItemOut, DrugOut, PharmacyOut, 
                       PharmacyShort, MessageOut, ReviewIn, ReviewOut, SeedSchema)
 User = get_user_model()
 
@@ -297,13 +297,48 @@ def decrease_from_cart(request, drug_id: int):
 
 @cart_router.put("checkout",
                   response={
-                      200: DrugItemOut,
+                      200: Checkout,
                       400: MessageOut,
-                      404: MessageOut,
                   },
                 auth=CustomAuth(),)
-def decrease_from_cart(request):
-    pass
+def checkout(request):
+    # get the user from email in auth
+    email = normalize_email(request.auth)
+
+    # get user profile
+    profile = get_user_profile(email)
+    if isinstance(profile, Error):
+        return profile.status, profile.message
+
+    cart = Cart.objects.filter(user=profile).first()
+    items = list(DrugItem.objects.filter(cart=cart))
+
+    if not items:
+        return status.HTTP_400_BAD_REQUEST, MessageOut(detail="No items in cart")
+
+    total =  sum([
+            item.drug.price * item.amount
+            for item in items
+            ])
+
+
+    # get shipping cost
+    shipping = items[0].drug.pharmacy.shipping
+
+    result = cart.__dict__
+    result["items"] = items
+    result["user"] = profile
+    result["total"] = total
+    result["shipping"] = shipping
+
+    for item in items:
+        item.delete()
+
+    print("_------------__")
+    print(result)
+    print("_------------__")
+
+    return status.HTTP_200_OK, result
 
 
 """ Draft """

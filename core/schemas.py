@@ -149,7 +149,6 @@ class DrugItemOut(DrugItemSchema):
 
 
 class CartSchema(Schema):
-    user: ProfileOut
     items: List[DrugItemOut]
     ordered: bool
     start_date: date
@@ -170,7 +169,14 @@ class CartIn(CartSchema):
 
 
 class CartOut(CartSchema):
+    user: ProfileOut
+
+
+class Checkout(CartSchema):
     pass
+
+
+""" Draft Schemas """
 
 
 class SeedSchema(Schema):
