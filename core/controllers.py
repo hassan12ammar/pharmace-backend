@@ -203,9 +203,12 @@ def get_cart(request):
             item.drug.price * item.amount
             for item in items
             ])
-    
-    # get shipping cost
-    shipping = items[0].drug.pharmacy.shipping
+
+    if not items:
+        shipping = None
+    else:
+        # get shipping cost
+        shipping = items[0].drug.pharmacy.shipping
 
     result = cart.__dict__
     result["items"] = items
@@ -290,6 +293,17 @@ def decrease_from_cart(request, drug_id: int):
         return item
 
     return status.HTTP_404_NOT_FOUND, MessageOut(detail="Item Not Found")
+
+
+@cart_router.put("checkout",
+                  response={
+                      200: DrugItemOut,
+                      400: MessageOut,
+                      404: MessageOut,
+                  },
+                auth=CustomAuth(),)
+def decrease_from_cart(request):
+    pass
 
 
 """ Draft """

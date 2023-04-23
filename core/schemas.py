@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Optional
 from ninja import Schema
 from datetime import date
 from django.db.models import Count, Q, Avg
@@ -153,7 +153,7 @@ class CartSchema(Schema):
     items: List[DrugItemOut]
     ordered: bool
     start_date: date
-    shipping: float
+    shipping: Optional[float]
 
     total: float
 
