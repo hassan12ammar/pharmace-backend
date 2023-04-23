@@ -145,7 +145,8 @@ class DrugItemOut(DrugItemSchema):
 
     @staticmethod
     def resolve_total(self):
-        return self.drug.price * self.amount
+        total = self.drug.price * self.amount
+        return round(total, 2)
 
 
 class CartSchema(Schema):
@@ -158,10 +159,12 @@ class CartSchema(Schema):
 
     @staticmethod
     def resolve_total(self):
-        return sum([
+        total = sum([
             item.total
             for item in self.items.all()
         ])
+
+        return round(total)
 
 
 class CartIn(CartSchema):

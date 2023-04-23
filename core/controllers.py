@@ -213,7 +213,7 @@ def get_cart(request):
     result = cart.__dict__
     result["items"] = items
     result["user"] = profile
-    result["total"] = total
+    result["total"] = round(total, 2)
     result["shipping"] = shipping
 
     return status.HTTP_200_OK, result
