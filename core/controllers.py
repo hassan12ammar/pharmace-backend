@@ -334,10 +334,6 @@ def checkout(request):
     for item in items:
         item.delete()
 
-    print("_------------__")
-    print(result)
-    print("_------------__")
-
     return status.HTTP_200_OK, result
 
 
