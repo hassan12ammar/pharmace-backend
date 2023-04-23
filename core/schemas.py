@@ -153,7 +153,6 @@ class CartSchema(Schema):
     items: List[DrugItemOut]
     ordered: bool
     start_date: date
-    ordered_date: date
     shipping: float
 
     total: float
