@@ -328,7 +328,7 @@ def checkout(request):
     result = cart.__dict__
     result["items"] = items
     result["user"] = profile
-    result["total"] = total
+    result["total"] = round(total, 2)
     result["shipping"] = shipping
 
     for item in items:
