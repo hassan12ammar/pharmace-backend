@@ -10,7 +10,7 @@ from .models import Cart, DrugItem, OpeningHours, Pharmacy, Review, Drug
 from pharmace.utlize.custom_classes import Error
 from auth_profile.authentication import CustomAuth
 from pharmace.utlize.utlize import get_user_profile, normalize_email
-from .schemas import (CartOut, Checkout, DrugItemOut, DrugOut, PharmacyOut, 
+from .schemas import (CartOut, Checkout, DrugOut, ItemUpdate, PharmacyOut, 
                       PharmacyShort, MessageOut, ReviewIn, ReviewOut, SeedSchema)
 User = get_user_model()
 
@@ -198,30 +198,13 @@ def get_cart(request):
         return profile.status, profile.message
 
     cart = Cart.objects.filter(user=profile).first()
-    items = list(DrugItem.objects.filter(cart=cart))
-    total =  sum([
-            item.drug.price * item.amount
-            for item in items
-            ])
 
-    if not items:
-        shipping = None
-    else:
-        # get shipping cost
-        shipping = items[0].drug.pharmacy.shipping
-
-    result = cart.__dict__
-    result["items"] = items
-    result["user"] = profile
-    result["total"] = round(total, 2)
-    result["shipping"] = shipping
-
-    return status.HTTP_200_OK, result
+    return status.HTTP_200_OK, cart
 
 
 @cart_router.post("add_increment_to_cart/{drug_id}",
                   response={
-                      200: DrugItemOut,
+                      200: ItemUpdate,
                       400: MessageOut,
                       404: MessageOut,
                   },
@@ -259,7 +242,7 @@ def add_to_cart(request, drug_id: int):
 
 @cart_router.put("decrease_from_cart/{drug_id}",
                   response={
-                      200: DrugItemOut,
+                      200: ItemUpdate,
                       400: MessageOut,
                       404: MessageOut,
                   },
@@ -281,18 +264,18 @@ def decrease_from_cart(request, drug_id: int):
     item = DrugItem.objects.filter(drug=drug,
                                    cart=cart,)
 
-    if item.exists():
-        item = item.first()
-        item.amount -= 1
-        item.save()
+    if not item.exists():
+        return status.HTTP_404_NOT_FOUND, MessageOut(detail="Item Not Found")
 
-        if item.amount <= 0:
-            item.delete()
-            return status.HTTP_200_OK, MessageOut(detail="Item Deleted")
+    item = item.first()
+    item.amount -= 1
+    item.save()
 
-        return item
+    if item.amount <= 0:
+        item.delete()
+        item
 
-    return status.HTTP_404_NOT_FOUND, MessageOut(detail="Item Not Found")
+    return status.HTTP_200_OK, item
 
 
 @cart_router.put("checkout",
@@ -311,30 +294,13 @@ def checkout(request):
         return profile.status, profile.message
 
     cart = Cart.objects.filter(user=profile).first()
-    items = list(DrugItem.objects.filter(cart=cart))
+    # Serialize the old cart data
+    old_cart = Checkout.from_orm(cart)
 
-    if not items:
-        return status.HTTP_400_BAD_REQUEST, MessageOut(detail="No items in cart")
-
-    total =  sum([
-            item.drug.price * item.amount
-            for item in items
-            ])
-
-
-    # get shipping cost
-    shipping = items[0].drug.pharmacy.shipping
-
-    result = cart.__dict__
-    result["items"] = items
-    result["user"] = profile
-    result["total"] = round(total, 2)
-    result["shipping"] = shipping
-
-    for item in items:
+    for item in cart.items:
         item.delete()
 
-    return status.HTTP_200_OK, result
+    return status.HTTP_200_OK, old_cart
 
 
 """ Draft """
@@ -434,7 +400,7 @@ def create(request):
 
 @draft_router.put("remove_from_cart/{drug_id}",
                   response={
-                      200: DrugItemOut,
+                      200: ItemUpdate,
                       400: MessageOut,
                       404: MessageOut,
                   },

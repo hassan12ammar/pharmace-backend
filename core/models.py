@@ -84,6 +84,11 @@ class DrugItem(models.Model):
                              related_name="item_cart",
                              on_delete=models.CASCADE)
 
+    @property
+    def total(self):
+        total = self.drug.price * self.amount
+        return round(total, 2)
+
     def __str__(self):
         return f"{self.drug} / {self.amount}"
 
@@ -108,6 +113,19 @@ class Cart(models.Model):
                               default=StatusChoices.NEW)
 
     start_date = models.DateTimeField(auto_now_add=True)
+
+    @property
+    def items(self):
+        return DrugItem.objects.filter(cart=self).all()
+
+    @property
+    def total(self):
+        total = sum([
+            item.total
+            for item in self.items
+        ])
+
+        return round(total, 2)
 
     def __str__(self):
         return f"{self.user.__str__()} cart"

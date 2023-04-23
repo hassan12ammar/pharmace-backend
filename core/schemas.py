@@ -1,6 +1,6 @@
-from typing import List, Optional
 from ninja import Schema
 from datetime import date
+from typing import List, Optional
 from django.db.models import Count, Q, Avg
 from django.db.models.functions import Round
 # local models
@@ -131,26 +131,30 @@ class PharmacyOut(PharmacySchema):
 """ Cart Schemas """
 
 
-class DrugItemSchema(Schema):
+class ItemSchema(Schema):
     amount: int
 
 
-class DrugItemIn(DrugItemSchema):
+class ItemIn(ItemSchema):
     drug_id: int
 
 
-class DrugItemOut(DrugItemSchema):
+class ItemOut(ItemSchema):
     drug: DrugOut
     total: float
 
+
+class ItemUpdate(ItemOut):
+    cart_total: float
+
     @staticmethod
-    def resolve_total(self):
-        total = self.drug.price * self.amount
+    def resolve_cart_total(self):
+        total = self.cart.total
         return round(total, 2)
 
 
 class CartSchema(Schema):
-    items: List[DrugItemOut]
+    items: List[ItemOut]
     ordered: bool
     start_date: date
     shipping: Optional[float]
@@ -158,13 +162,11 @@ class CartSchema(Schema):
     total: float
 
     @staticmethod
-    def resolve_total(self):
-        total = sum([
-            item.total
-            for item in self.items.all()
-        ])
-
-        return round(total)
+    def resolve_shipping(self):
+        items = self.items
+        if not items:
+            return
+        return items[0].drug.pharmacy.shipping
 
 
 class CartIn(CartSchema):
