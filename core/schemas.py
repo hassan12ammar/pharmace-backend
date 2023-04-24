@@ -165,7 +165,7 @@ class CartSchema(Schema):
     def resolve_shipping(self):
         items = self.items
         if not items:
-            return
+            return 0
         return items[0].drug.pharmacy.shipping
 
 
