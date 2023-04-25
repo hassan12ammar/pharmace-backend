@@ -11,6 +11,11 @@ The website is built with Django and uses NinjaAPI to handle the RESTful API. Th
 
 ## Installation and Setup
 
+### if you are lazy to do the below
+```sh
+./first_start.sh
+```
+
 ### Clone the repository
 ```sh
 git clone https://github.com/hassan12ammar/pharmace-backend.git
