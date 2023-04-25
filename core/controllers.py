@@ -1,6 +1,7 @@
 import random
 from typing import List
 from ninja import Router
+from django.db.models import Avg
 from rest_framework import status
 from auth_profile.models import Profile
 from django.contrib.auth import get_user_model
@@ -96,7 +97,7 @@ def get_pharm_reviews(request, id: int, page_number: int=1):
 @pharmacy_router.get("search_pharmacy/{name}",
                      response={200: List[PharmacyShort],
                                400: MessageOut,},)
-def search_location(request, name: str):
+def search_name(request, name: str):
     return status.HTTP_200_OK, Pharmacy.objects.filter(name__contains=name)
 
 
@@ -111,7 +112,9 @@ def search_location(request, location: str):
                      response={200: List[PharmacyShort],
                                400: MessageOut,},)
 def filter_rates(request, name: str):
-    pharmacies = Pharmacy.objects.filter(name__contains=name).order_by("-review__rating")
+    pharmacies = Pharmacy.objects.filter(name__contains=name
+                                         ).annotate(rate_avg=Avg("review__rating")
+                                        ).order_by("rate_avg")
 
     return status.HTTP_200_OK, pharmacies
 
@@ -342,13 +345,18 @@ def create(request):
     pharmacy_img = "seed_img/pharmacy.jpg"
 
     pharmacies = []
+    names_1 = ['nahr','Kauthar','alsiha','life']
+    names_2 = ['aldawaa','alyasameen','elixer','dalya']
+    current_id = 0
+
     for i in range(10):
         pharmacy, _ = Pharmacy.objects.get_or_create(
-                name=f"{i} Nahr AL-Dawaa",
+                name=f"{i} {names_1[current_id]} {names_2[current_id]}",
                 description="A family-owned pharmacy that has been serving the community",
                 location="Al Mansour / alroad / cross meshmesha",
                 img=pharmacy_img,
         )
+        current_id = current_id+1 if current_id < len(names_1)-1 else 0
 
         # create opening hours
         for choice in OpeningHours.DayChoices.choices:
