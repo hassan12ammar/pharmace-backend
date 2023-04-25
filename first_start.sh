@@ -7,8 +7,16 @@ find . -path "*/core/migrations/*.py" -not -name "__init__.py" -delete
 # remove old DataBase
 rm db.sqlite3
 
+# Create virtual environment if not created 
+if [ ! -d "pharmace_venv" ]; then
+    python -m venv pharmace_venv
+fi
+
 # Activate the virtual environment
 source pharmace_venv/bin/activate
+
+# Install requirements packages
+pip install -r requirements.txt
 
 # make & apply new migrations
 python manage.py makemigrations
