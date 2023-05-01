@@ -1,11 +1,12 @@
 import random
 from typing import List
 from ninja import Router
-from django.db.models import Avg
 from rest_framework import status
+from django.db.models import Avg, Q
 from auth_profile.models import Profile
 from django.contrib.auth import get_user_model
-from pharmace.utlize.constant import DRUG_PER_PAGE, PHARMACY_PER_PAGE, REVIEW_DESCRIPTION, REVIEW_PER_PAGE
+from pharmace.utlize.constant import (DRUG_PER_PAGE, PHARMACY_PER_PAGE, 
+                                      REVIEW_DESCRIPTION, REVIEW_PER_PAGE)
 # locall models
 from .models import Cart, DrugItem, OpeningHours, Pharmacy, Review, Drug
 from pharmace.utlize.custom_classes import Error
@@ -94,27 +95,43 @@ def get_pharm_reviews(request, id: int, page_number: int=1):
     return Review.objects.filter(pharmacy=pharmacy).order_by("-id")[start:end]
 
 
-@pharmacy_router.get("search_pharmacy/{name}",
+@pharmacy_router.get("search_pharmacy/{drug_name}",
                      response={200: List[PharmacyShort],
                                400: MessageOut,},)
-def search_name(request, name: str):
-    return status.HTTP_200_OK, Pharmacy.objects.filter(name__contains=name)
+def search_name(request, drug_name: str):
+    return status.HTTP_200_OK, Pharmacy.objects.filter(drug__name__icontains=drug_name).distinct()
 
 
-@pharmacy_router.get("search_by_location/{location}",
+@pharmacy_router.get("search_by_location/{drug_name}",
+                     response={200: List[PharmacyShort],
+                               400: MessageOut,},
+                     auth=CustomAuth())
+def search_location(request, drug_name: str):
+    email = normalize_email(request.auth)
+    # get user profile
+    profile = get_user_profile(email)
+    if isinstance(profile, Error):
+        return profile.status, profile.message
+    pharmacies = (Pharmacy.objects
+                  .filter(drug__name__icontains=drug_name)
+                  .distinct()
+                  .filter(
+                      Q(location__icontains=profile.city) |
+                      Q(location__icontains=profile.province)
+                      )
+                  )
+
+    return status.HTTP_200_OK, pharmacies
+
+
+@pharmacy_router.get("filter_by_rates/{drug_name}",
                      response={200: List[PharmacyShort],
                                400: MessageOut,},)
-def search_location(request, location: str):
-    return status.HTTP_200_OK, Pharmacy.objects.filter(location__contains=location)
-
-
-@pharmacy_router.get("filter_by_rates/{name}",
-                     response={200: List[PharmacyShort],
-                               400: MessageOut,},)
-def filter_rates(request, name: str):
-    pharmacies = Pharmacy.objects.filter(name__contains=name
-                                         ).annotate(rate_avg=Avg("review__rating")
-                                        ).order_by("rate_avg")
+def filter_rates(request, drug_name: str):
+    pharmacies = (Pharmacy.objects.filter(drug__name__icontains=drug_name)
+                  .distinct()
+                  .annotate(rate_avg=Avg("review__rating"))
+                  .order_by("rate_avg"))
 
     return status.HTTP_200_OK, pharmacies
 
@@ -132,7 +149,7 @@ def filter_location(request, name: str):
     if isinstance(profile, Error):
         return profile.status, profile.message
 
-    pharmacy = Pharmacy.objects.filter(name__contains=name).filter(location__contains=profile.province)
+    pharmacy = Pharmacy.objects.filter(name__icontains=name).filter(location__icontains=profile.province)
 
     return status.HTTP_200_OK, pharmacy
 
@@ -314,12 +331,13 @@ def create(request):
     """
     make sure you have these files:
         - seed_img/drug.png
-        - seed_img/pharmacy.jpg
+        - seed_img/pharmacy_img.jpg
         - seed_img/profile.png
     """
 
     profile_img = "seed_img/profile.png"
 
+    provinces = ["Mansour", "Kadhimiya", "Al Jamaa"]
     profile_users = []
     for user_ in range(12):
         
@@ -335,14 +353,16 @@ def create(request):
         profile, _ = Profile.objects.get_or_create(
             user=user, 
             name='BASBOS',
-            img=profile_img
+            img=profile_img,
+            city="Baghdad",
+            province=random.choice(provinces)
         )
         # create empty Cart for the user
         Cart.objects.create(user=profile)
 
         profile_users.append(profile)
 
-    pharmacy_img = "seed_img/pharmacy.jpg"
+    pharmacy_img = "seed_img/pharmacy_img.jpg"
 
     pharmacies = []
     names_1 = ['nahr','Kauthar','alsiha','life']
@@ -353,7 +373,7 @@ def create(request):
         pharmacy, _ = Pharmacy.objects.get_or_create(
                 name=f"{i} {names_1[current_id]} {names_2[current_id]}",
                 description="A family-owned pharmacy that has been serving the community",
-                location="Al Mansour / alroad / cross meshmesha",
+                location=f"{random.choice(provinces)} / alroad / cross meshmesha",
                 img=pharmacy_img,
         )
         current_id = current_id+1 if current_id < len(names_1)-1 else 0
@@ -387,11 +407,12 @@ def create(request):
 
 
     drug_img = "seed_img/drug.png"
+    drug_names = ['Aspirin', 'Ibuprofen', 'Acetaminophen', 'Morphine', "Ibuprofen 200mg tablets"]
 
     for pharmacy_ in range(len(pharmacies)):
         for drug_ in range(20):
             Drug.objects.get_or_create(
-                name = f"{drug_} Ibuprofen 200mg tablets",
+                name = f"{drug_} {random.choice(drug_names)}",
                 description ="Pain relief for headaches, toothaches, menstrual cramps, and other minor aches and pains.",
                 img = drug_img,
                 price=4.99,
