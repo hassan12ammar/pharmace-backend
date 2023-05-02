@@ -99,7 +99,10 @@ def get_pharm_reviews(request, id: int, page_number: int=1):
                      response={200: List[PharmacyShort],
                                400: MessageOut,},)
 def search_name(request, drug_name: str):
-    return status.HTTP_200_OK, Pharmacy.objects.filter(drug__name__icontains=drug_name).distinct()
+    pharmacies = (Pharmacy.objects.filter(Q(drug__name__icontains=drug_name) | 
+                                          Q(name__contains=drug_name))
+                  .distinct())
+    return status.HTTP_200_OK, pharmacies
 
 
 @pharmacy_router.get("search_by_location/{drug_name}",
@@ -113,7 +116,8 @@ def search_location(request, drug_name: str):
     if isinstance(profile, Error):
         return profile.status, profile.message
     pharmacies = (Pharmacy.objects
-                  .filter(drug__name__icontains=drug_name)
+                  .filter(Q(drug__name__icontains=drug_name) | 
+                          Q(name__contains=drug_name))
                   .distinct()
                   .filter(
                       Q(location__icontains=profile.city) |
@@ -128,7 +132,8 @@ def search_location(request, drug_name: str):
                      response={200: List[PharmacyShort],
                                400: MessageOut,},)
 def filter_rates(request, drug_name: str):
-    pharmacies = (Pharmacy.objects.filter(drug__name__icontains=drug_name)
+    pharmacies = (Pharmacy.objects.filter(Q(drug__name__icontains=drug_name) | 
+                                          Q(name__contains=drug_name))
                   .distinct()
                   .annotate(rate_avg=Avg("review__rating"))
                   .order_by("rate_avg"))
